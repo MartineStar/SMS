@@ -1,0 +1,62 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>教师列表</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">
+
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/js/validateExtends.js' %}"></script>
+	<script>
+		$theme = window.parent.$theme;
+		$link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+	</script>
+
+</head>
+<body>
+	<script>
+		$(function(){
+			var table;		
+			//datagrid初始化 
+		    $('#dataList').datagrid({ 
+		        title:'教师列表', 
+		        iconCls:'icon-more',//图标 
+		        border: true, 
+		        collapsible:false,//是否可折叠的 
+		        fit: true,//自动大小 
+		        method: "post",
+		        url:"{% url 'mysrc_teach' %}",
+		        idField:'id', 
+		        singleSelect:false,//是否单选
+		        // pagination:true,//分页控件 
+		        rownumbers:true,//行号 
+		        sortName:'id',
+		        // sortOrder:'DESC', 
+		        // remoteSort: false,
+		        columns: [[  
+		        	{field:'chk',checkbox: true,width:50},
+	 		        {field:'tea_number',title:'工号',width:110,align:'center',halign:'center'},    
+	 		        {field:'name',title:'姓名',width:150,align:'center',halign:'center'},
+	 		        {field:'gender',title:'性别',width:100,align:'center',halign:'center'},
+	 		        {field:'data_birth',title:'出生年月',width:150,align:'center',halign:'center'},
+	 		        {field:'phone',title:'电话',width:200,align:'center',halign:'center'},
+	 		        {field:'qq',title:'QQ',width:200,align:'center',halign:'center'},
+
+		 		]], 
+		        toolbar: "#toolbar"
+		    }); 
+
+		})
+	</script>
+	<!-- 数据列表 -->
+	<table id="dataList" cellspacing="0" cellpadding="0">     
+	</table> 	
+</body>
+</html>

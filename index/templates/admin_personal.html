@@ -1,0 +1,241 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>系统设置</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">	
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/js/validateExtends.js' %}"></script>
+	<script>
+		$theme = window.parent.$theme;
+		$link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+	</script>
+	<style type="text/css">
+		.table th{font-weight:bold}
+		.table th,.table td{padding:8px;line-height:20px}
+		.table td{text-align:left}
+		.table-border{border-top:1px solid #ddd}
+		.table-border th,.table-border td{border-bottom:1px solid #ddd}
+		.table-bordered{border:1px solid #ddd;border-collapse:separate;*border-collapse:collapse;border-left:0}
+		.table-bordered th,.table-bordered td{border-left:1px solid #ddd}
+		.table-border.table-bordered{border-bottom:0}
+		.table-striped tbody > tr:nth-child(odd) > td,.table-striped tbody > tr:nth-child(odd) > th{background-color:#f9f9f9}
+		#systemTable td{color:red;font-weight: bold}
+
+	</style>
+	<script>
+		$(function() {			
+			//修改密码窗口
+		    $("#passwordDialog").dialog({
+		    	title: "修改密码",
+		    	width: 500,
+		    	height: 300,
+		    	iconCls: "icon-add",
+		    	modal: true,
+		    	collapsible: false,
+		    	minimizable: false,
+		    	maximizable: false,
+		    	draggable: true,
+		    	closed: true,
+		    	buttons: [{
+		  					text:'提交',
+		  					iconCls:'icon-user_add',
+		  					handler:function(){
+		  						var validate = $("#editPassword").form("validate");		//进行表单校验
+
+		  						if(!validate){
+		  							$.messager.alert("消息提醒","请检查你输入的数据!","warning");
+		  							return;
+		  						} else{	
+		  							var $oldpwd =$('#old_password');
+		  							var $newpwd = $('#new_password');
+		  							var number = window.parent.number;
+		  							$.ajax({
+		  								type: "post",
+		  								url:"{% url 'admin_password' %}", 
+		  								data:{'oldpwd':$oldpwd.val(),'newpwd':$newpwd.val(),'number':number},
+		  								datatype:'json',	
+		  								success: function(msg){
+		  									//核对：1.原密码是否正确，2.原密码和新密码是否一致。都符合则返回success
+		  									if(msg['data'] == "success"){
+		  										$.messager.alert("消息提醒","修改成功，将重新登录","info")
+		  										setTimeout(function(){
+		  											top.location.href = "{% url 'login' %}"  //主页跳转到登陆页面
+		  										}, 1000);
+		  									}else if(msg['data'] == "false"){
+		  										$.messager.alert("消息提醒","原密码错误，重新输入！","info")
+		  									}else{
+		  										$.messager.alert("消息提醒","系统错误，修改失败！","info")
+		  									}
+		  								}
+		  							});
+		  						}
+		  					}
+		  				},
+		  				{
+		  					text:'重置',
+		  					iconCls:'icon-reload',
+		  					handler:function(){
+		  						//清空表单
+		  						$("#old_password").textbox('setValue', "");
+		  						$("#new_password").textbox('setValue', "");
+		  						$("#re_password").textbox('setValue', "");
+		  					}
+		  				}
+		  			],
+		    })
+			
+			//设置编辑学生窗口
+		    $("#editDialog").dialog({
+		    	title: "修改密码",
+		    	width: 500,
+		    	height: 400,
+		    	fit: true,
+		    	modal: false,
+		    	noheader: true,
+		    	collapsible: false,
+		    	minimizable: false,
+		    	maximizable: false,
+		    	draggable: true,
+		    	closed: false,
+		    	toolbar: [
+					{
+						text:'重置',
+						plain: true,
+						iconCls:'icon-reload',
+						handler:function(){
+							//清空表单
+							$("#school_name").textbox('setValue', "");
+							$("#forbid_teacher").removeAttr("checked");
+							$("#forbid_student").removeAttr("checked");
+							$("#notice_teacher").textbox('setValue', "");
+							$("#notice_student").textbox('setValue', "");
+						}
+					},'-',
+					{
+						text:'修改密码',
+						plain: true,
+						iconCls:'icon-password',
+						handler:function(){
+							$("#passwordDialog").dialog("open");
+						}
+					}
+				],
+				
+		    });
+			
+			//修改
+			$("#systemTable a").each(function(){
+				$(this).click(function(){
+					var input = $(this).parents("tr").find("input");
+					var inputName = $(input).attr("name");
+					var name = "";
+					var value = "";
+					if(inputName == "forbidTeacher" || inputName == "forbidStudent"){
+						name = inputName;
+						if($(input).attr("checked")){
+							value = 1;
+						} else{
+							value = 0;
+						}
+					} else{
+						var name = $(input).attr("textboxname");
+						var value = $(input).textbox("getValue");
+					}
+					
+					//保存
+					var data = {'name': name, 'value': value};
+					//alert(value)
+					$.ajax({
+						type: "post",
+						url: "{% url 'user_s' %}",
+						data: data,
+						success: function(msg){
+							if(msg['data'] == "success"){
+								$.messager.alert("消息提醒","保存成功","info");
+							}
+						}
+					});
+				});
+			});
+		})
+	</script>
+</head>
+<body>	
+	<div id="editDialog" style="padding: 20px;">
+		<div style="width: 650px">
+    	<table id="systemTable" class="table table-border table-bordered table-striped" style="width: 650px" cellpadding="8" >
+    		<tr>
+    			<td width="200">学校名称:</td>
+    			<td width="350">
+    				<input id="school_name" value="" class="easyui-textbox" style="width: 300px; height: 30px;" type="text" name="schoolName" />
+    			</td>
+    			<td width="100"><a data-options="iconCls:'icon-save'" class="easyui-linkbutton">保存</a></td>
+    		</tr>
+    		<tr>
+    			<td>禁止教师<br/>登录系统 </td>
+    			<td><input id="forbid_teacher" type="checkbox" name="forbidTeacher" /></td>
+    			<td><a data-options="iconCls:'icon-save'" class="easyui-linkbutton">保存</a></td>
+    		</tr>
+    		<tr>
+    			<td>禁止学生<br/>登录系统 </td>
+    			<td><input id="forbid_student" type="checkbox" name="forbidStudent" /></td>
+    			<td><a data-options="iconCls:'icon-save'" class="easyui-linkbutton">保存</a></td>
+    		</tr>
+    		<tr>
+    			<td>教师通知:</td>
+    			<td><input id="notice_teacher"  value="" style="width: 300px; height: 70px;" data-options="multiline: true" class="easyui-textbox" type="text" name="noticeTeacher" /></td>
+    			<td><a data-options="iconCls:'icon-save'" class="easyui-linkbutton">保存</a></td>
+    		</tr>
+    		<tr>
+    			<td>学生通知:</td>
+    			<td><input id="notice_student"  value="" style="width: 300px; height: 70px;" data-options="multiline: true" class="easyui-textbox" type="text" name="noticeStudent" /></td>
+    			<td><a data-options="iconCls:'icon-save'" class="easyui-linkbutton">保存</a></td>
+    		</tr>
+    	</table>
+    	</div>
+	</div>
+	
+	<!-- 修改密码窗口 -->
+	<div id="passwordDialog" style="padding: 20px">
+    	<form id="editPassword">
+	    	<table cellpadding="8" >
+	    		<tr>
+	    			<td>原密码:</td>
+	    			<td>
+	    				<input id="old_password" style ="width: 200px; height: 30px;" class="easyui-textbox" type="password"   data-options="required:true, missingMessage:'请输入原密码'" />
+	    			</td>
+	    		</tr>
+	    		<tr>
+	    			<td>新密码:</td>
+	    			<td>
+	    				<input  type="hidden" name="account" />
+	    				<input id="new_password" style="width: 200px; height: 30px;" class="easyui-textbox" type="password" validType="password" name="password" data-options="required:true, missingMessage:'请输入新密码'" />
+	    			</td>
+	    		</tr>
+	    		<tr>
+	    			<td>新密码:</td>
+	    			<td><input id="re_password" style="width: 200px; height: 30px;" class="easyui-textbox" type="password" validType="equals['#new_password']"  data-options="required:true, missingMessage:'再次输入密码'" /></td>
+	    		</tr>
+	    	</table>
+	    </form>
+	</div>
+	<script>
+		var $school_name = $('#school_name');
+		var $notice_teacher = $('#notice_teacher');
+		var $notice_student = $("#notice_student");
+
+		$school_name.attr('value','{{schoolname}}');
+		$notice_teacher.attr('value','{{teacherBulletin}}');
+		$notice_student.attr('value','{{studentBulletin}}');
+
+	</script>
+</body>
+</html>

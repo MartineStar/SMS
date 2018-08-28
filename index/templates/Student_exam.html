@@ -1,0 +1,75 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>成绩查询</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/locale/easyui-lang-zh_CN.js' %}"></script>
+	<script>
+		$theme = window.parent.$theme;
+		$link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+	</script>
+</head>
+<body>
+	<!-- 数据列表 -->
+	<table id="dataList" cellspacing="0" cellpadding="0">  
+	</table>	
+	<!-- 考试成绩表 -->
+	<div id="escoreDialog">
+		<table id="escoreList" cellspacing="0" cellpadding="0"> 	    
+		</table> 
+	</div>	
+
+	<script>
+		//验证只能为数字
+		function scoreBlur(score){
+			if(!/^[1-9]\d*$/.test($(score).val())){
+				$(score).val("");
+			}
+		}
+		$(function() {				
+			var table;			
+			//datagrid初始化 
+				$('#dataList').datagrid({ 
+						title:'成绩单', 
+						iconCls:'icon-more',//图标 
+						border: true, 
+						collapsible: false,//是否可折叠的 
+						fit: true,//自动大小 
+						method: "post",
+						// data:{'clazz':class_number},
+						url:"/iasdkfjopiuu/cx_student_score_1/"+user_id,
+						// data:[{'id':1,'term':'第一学期','major_number':'123','class_number':'12345','stu_number':'201301044','course_number':'1','score':'12'}],
+						idField:'id',
+						singleSelect: true,//是否单选
+						pagination: false,//分页控件
+						rownumbers: true,//行号
+						remoteSort: false,
+						columns: [[
+							{field:'id',title:'序号',width:50,align:'center',halign:'center'},
+							{field:'stu_number',title:'学号',width:150,align:'center',halign:'center'},
+							{field:'term',title:'姓名',width:150,align:'center',halign:'center'},    
+							{field:'major_number',title:'课程编号',width:150, sortable: true,align:'center',halign:'center'},
+							{field:'course_number',title:'课程',width:150,align:'center',halign:'center'},
+							{field:'class_number',title:'班级',width:150,align:'center',halign:'center'},
+						 	{field:'score',title:'课程分数',width:150,align:'center',halign:'center'},
+						]], 
+				}); 
+		});
+		var user_id = window.parent.user_id;
+		var name = window.parent.name;
+		var gender = window.parent.gender;
+		var nation = window.parent.nation;
+		var major_number = window.parent.major_number;
+		var class_number = window.parent.class_number;	
+	</script>
+</body>
+</html>

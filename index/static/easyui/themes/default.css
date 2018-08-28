@@ -1,0 +1,26 @@
+/*定义默认样式*/
+@charset 'utf-8'; 
+/* 声明编码 */
+blockquote,body,button,dd,dl,dt,fieldset,form,h1,h2,h3,h4,h5,h6,hr,input,legend,li,ol,p,pre,td,textarea,th,ul{margin:0;padding:0}
+
+li{
+	list-style:none;/*清除li默认的列表样式*/
+}
+
+a{
+	text-decoration:none;/*清除a标签默认的下划线*/
+	color:inherit;/**强制从父级继承字体颜色**/
+}
+
+i,em{
+	font-style:normal;/*重置斜体*/
+}
+
+b,strong{
+	font-weight:normal;/*重置加粗*/
+}
+
+img{
+	vertical-align:top;/*重置图片的空白，图片加载到容器中总会在底边有一条线的间隙*/
+	border:none;/*解决IE下默认的边框*/
+}

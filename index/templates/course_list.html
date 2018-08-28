@@ -1,0 +1,227 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>课程列表</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/js/validateExtends.js' %}"></script>	
+	<script>
+		$theme = window.parent.$theme;
+		$link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+	</script>
+</head>
+<body>
+<script type="text/javascript">
+		$(function() {	
+			//datagrid初始化 
+		    $('#dataList').datagrid({ 
+		        title:'课程列表', 
+		        iconCls:'icon-more',//图标 
+		        border: true, 
+		        collapsible: false,//是否可折叠的 
+		        fit: true,//自动大小 
+		        method: "post",
+		        url:"{% url 'mysrc_course_list' %}",
+		        idField:'id', 
+		        singleSelect: true,//是否单选 
+		        pagination: false,//分页控件 
+		        rownumbers: true,//行号 
+		        sortName:'id',
+		        // sortOrder:'DESC', 
+		        remoteSort: false,
+		        columns: [[  
+						{field:'chk',checkbox: true,width:50},
+	 		        	{field:'id',title:'课程ID',width:70, sortable: true,align:'center',halign:'center'},    
+	 		        	{field:'course_number',title:'课程名称',width:100,align:'center',halign:'center'},
+						{field:'major_number',title:'年级名称',width:100,align:'center',halign:'center'},
+						{field:'class_number',title:'上课班级',width:100,align:'center',halign:'center'},
+						{field:'teach_number',title:'授课老师',width:100,align:'center',halign:'center',},
+						{field:'course_place',title:'上课地点',width:100,align:'center',halign:'center'},
+						{field:'course_day',title:'开课日期',width:150,align:'center',halign:'center'},
+						{field:'course_time',title:'上课时间',width:100,align:'center',halign:'center'},
+						{field:'course_week',title:'星期几',width:100,align:'center',halign:'center'},
+						{field:'course_interval',title:'课时',width:100,align:'center',halign:'center'},
+		 		]], 
+		        toolbar: "#toolbar"
+		    }); 
+
+		    //设置工具类按钮
+		    $("#add").click(function(){
+		    	$("#addDialog").dialog("open");
+		    });
+		    //删除
+		    $("#delete").click(function(){
+		    	var selectRow = $("#dataList").datagrid("getSelected");
+	        	if(selectRow == null){
+	            	$.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+	            } else{
+	            	var courseid = selectRow.id;
+	            	$.messager.confirm("消息提醒", "将删除与课程相关的所有数据，确认继续？", function(r){
+	            		if(r){
+	            			$.ajax({
+								type: "post",
+								url: "{% url 'mysrc_course_del' %}",
+								data: {courseid: courseid},
+								success: function(msg){
+									if(msg['data'] == "success"){
+										$.messager.alert("消息提醒","删除成功!","info");
+										//刷新表格
+										$("#dataList").datagrid("reload");
+									} else{
+										$.messager.alert("消息提醒","删除失败!","warning");
+										return;
+									}
+								}
+							});
+	            		}
+	            	});
+	            }
+		    });
+		  	
+		  	//设置添加窗口
+		    $("#addDialog").dialog({
+		    	title: "添加课程",
+		    	width: 600,
+		    	height: 470,
+		    	iconCls: "icon-add",
+		    	modal: true,
+		    	collapsible: false,
+		    	minimizable: false,
+		    	maximizable: false,
+		    	draggable: true,
+		    	closed: true,
+		    	buttons: [
+		    		{
+						text:'添加',
+						plain: true,
+						iconCls:'icon-book-add',
+						handler:function(){
+							var validate = $("#addForm").form("validate");
+							if(!validate){
+								$.messager.alert("消息提醒","请检查你输入的数据!","warning");
+								return;
+							} else{
+								console.log($("#addForm").serialize())
+								$.ajax({
+									type: "post",
+									url: "{% url 'mysrc_course_ajax_submit' %}",
+									data: $("#addForm").serialize(),
+									success: function(msg){
+										if(msg['data'] == "success"){
+											$.messager.alert("消息提醒","添加成功!","info");
+											//关闭窗口
+											$("#addDialog").dialog("close");
+											//清空原表格数据
+											$("#add_name").textbox('setValue', "");
+											//刷新
+											$('#dataList').datagrid("reload");
+										} else{
+											$.messager.alert("消息提醒","添加失败!","warning");
+											return;
+										}
+									}
+								});
+							}
+						}
+					},
+					{
+						text:'重置',
+						plain: true,
+						iconCls:'icon-book-reset',
+						handler:function(){
+							$("#add_name").textbox('setValue', "");
+							$("#add_major").textbox('setValue', "");
+							$("#add_class").textbox('setValue', "");
+							$("#add_date").textbox('setValue', "");
+							$("#add_weekday").textbox('setValue', "");
+							$("#add_time").textbox('setValue', "");
+							$("#add_interval").textbox('setValue', "");
+							$("#add_place").textbox('setValue', "");
+							$("#add_name").textbox('setValue', "");
+						}
+					},
+				]
+		    });
+
+		    $("#add_teacher").combobox({
+		  		valueField: "clazz_name",
+		  		textField: "clazz_name",
+		  		multiple: false, //可多选
+		  		editable: false, //不可编辑
+		  		method: "post",
+		  		url: "{% url 'mysrc_clazz_xl' %}",
+		  		onLoadSuccess: function(){
+			  		//默认选择第一条数据
+					var data = $(this).combobox("getData");
+					$(this).combobox("setValue", data[0].id);
+		  		}
+		  	});
+		  	
+		});
+	</script>
+	<!-- 数据列表 -->
+	<table id="dataList" cellspacing="0" cellpadding="0"> 
+	    
+	</table> 
+	<!-- 工具栏 -->
+	<div id="toolbar">
+		<div style="float: left;"><a id="add" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true">添加</a></div>
+			<div style="float: left;" class="datagrid-btn-separator"></div>
+		<div><a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a></div>
+	</div>
+	
+	<!-- 添加数据窗口 -->
+	<div id="addDialog" style="padding: 10px;'">  
+    	<form id="addForm" method="post">
+	    	<table cellpadding="4" >
+	    		<tr>
+	    			<td>课程名称:</td>
+	    			<td><input id="add_name" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="course_number" data-options="required:true, missingMessage:'不能为空'" /></td>
+					</tr>
+					<tr>
+						<td>年级名称:</td>
+	    			<td><input id="add_major" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="major_number" data-options="required:true, missingMessage:'不能为空'" /></td>
+					</tr>
+					<tr>
+						<td>上课班级:</td>
+	    			<td><input id="add_class" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="class_number" data-options="required:true,  missingMessage:'不能为空'" /></td>
+					</tr>
+					<tr>
+						<td>授课教师:</td>
+	    			<td><input id="add_teacher" style="width: 200px; height: 30px;" class="easyui-combobox" type="text" name="class_number" data-options="required:true,  missingMessage:'不能为空'" /></td>
+					</tr>
+					<tr>
+						<td>上课地点:</td>
+	    			<td><input id="add_place" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="course_place" data-options="required:true,  missingMessage:'不能为空'" /></td>
+					</tr>
+					<tr>
+						<td>开课日期:</td>
+	    			<td><input id="add_date" style="width: 200px; height: 30px;" class="easyui-datebox" type="text" name="course_day" data-options="required:true,  missingMessage:'不能为空',editable:false" /></td>
+					</tr>
+					<tr>
+						<td>上课时间:</td>
+	    			<td><input id="add_time" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="course_time" 
+						data-options="required:true, missingMessage:'不能为空'" /></td>
+					</tr>
+					<tr>
+						<td>星期几:</td>
+	    			<td><input id="add_weekday" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="course_week" data-options="required:true,  missingMessage:'不能为空'" /></td>
+					</tr>
+					<tr>
+						<td>课时</td>
+						<td><input id="add_interval" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="course_interval" data-options="required:true, missingMessage:'不能为空'" /></td>
+	    		</tr>
+	    	</table>
+	    </form>
+	</div>
+		
+</body>
+</html>

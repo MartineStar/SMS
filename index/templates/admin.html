@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>欢迎您，管理员</title>
+    <link rel="stylesheet" type="text/css" href="/static/easyui/themes/default/easyui.css" id="link_theme">
+    <link rel="stylesheet" type="text/css" href="/static/easyui/themes/icon.css">
+	<link rel="stylesheet" href="{% static 'easyui/themes/default.css' %}">  
+    <script type="text/javascript" src="{% static 'easyui/js/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'easyui/locale/easyui-lang-zh_CN.js' %}"></script>
+
+	<style>
+		#notrh_bar{position:relative}
+		#north_bar h2{position:absolute;left:10px;top:10px}
+		#north_bar .top_menu{position:absolute;right:10px;top:12px;}
+		#north_bar .top_menu li{float:left;padding:0px 5px;}
+		#north_bar .top_menu #greeting{position:absolute;left:-180px;top:4px;color:red;}
+		#north_bar .top_menu #greeting_span{display:inline-block;max-width: 120px;margin-right:6px;white-space:nowrap; text-overflow:ellipsis; overflow:hidden;}	
+		#west_menu .mymenubox{width:94%;margin-bottom:5px;}
+	</style>
+  </head>
+  <body>
+    <script>
+        $(function(){
+            window.$theme = $('#theme_select')
+            var $link_theme = $('#link_theme')
+            $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+            $theme.click(function(){
+                $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+            })
+
+            var editRow = undefined;    //定义datagrid的编辑行
+            //北区导航栏的问候语动态加载
+            auto_greeting('2','管理员');           
+            function auto_greeting(){               
+                var src = '/static/images/'+arguments[0]+'.jpg';    //默认图片，如果数据库有存头像，则使用头像
+                var name = arguments[1];
+                $('#greeting_image').attr('src',src)
+                show_greeting(name);
+                setInterval(function(){
+                    show_greeting(name);
+                },1000);            
+                function show_greeting(identity){
+                    var hour = new Date().getHours();
+                    var s = new Date().getSeconds();
+                    if(hour>=6 && hour <= 11){
+                        $('#greeting_span').text('早上好！'+identity);
+                    }else if(hour >=12 && hour <=13){
+                        $('#greeting_span').text('中午好！'+identity);
+                    }else if(hour >=14 && hour <=18){
+                        $('#greeting_span').text('下午好！'+identity);
+                    }else if(hour >=19 && hour <=21){
+                        $('#greeting_span').text('晚上好！'+identity);
+                    }else{
+                        $('#greeting_span').text('夜深了，注意休息哦！'+identity);
+                    }
+                }
+            }
+            /* ----------------------------------以上为页面基本框架----------------------------*/
+
+            //show_studentList();           //显示学生列表的方法*/
+
+
+            $('#west_menu a.mymenubox').click(function(){
+                var text = $(this).text();              
+                var href = $(this).attr("mysrc");
+                //判断当前右边是否已有相应的tab
+                if($('#center_tt').tabs('exists',text)) {               
+                    $("#center_tt").tabs("select", text);
+                } else {                    
+                    //如果没有则创建一个新的tab，否则切换到当前tab
+                    $("#center_tt").tabs("add",{
+                        title:text,
+                        closable:true,
+                        //href指向服务器对应的页面
+                        content:'<iframe scrolling="no" frameborder="0" title='+text+' src='+href+' style="width:100%;height:100%;"></iframe>'          
+                    });
+                }
+            });
+        })      
+        var number = '{{number}}';
+    </script>
+	<noscript>
+		<div style=" position:absolute; z-index:100000; height:2046px;top:0px;left:0px; width:100%; background:white; text-align:center;">
+		    <img src="{% static 'images/loading.gif' %}" alt='抱歉，请开启脚本支持！' />
+		</div>
+	</noscript>
+    <div class="easyui-layout" data-options='fit:true'>
+        <div data-options="region:'north'" style="height:50px;" id='north_bar'>
+			<h2>学生信息管理系统</h2>
+			<ul class='top_menu'>	
+				<li  id='greeting'><span id='greeting_span'></span>					
+					<img id='greeting_image' width='20px' height='20px'>
+				</li>
+				<li id='theme'>                
+                    <span>切换主题&nbsp;</span>
+                    <select  style='width:80px;height:28px;border:1px solid gray;outline:none;' id='theme_select'>      
+                        <option value="default" selected="selected">默认主题</option>
+                        <option value="bootstrap">白色主题</option>
+                        <option value="black" >黑色主题</option>
+                    </select>          
+                </li>       				
+				
+		</div>
+        <div data-options="region:'south',split:true" style="height:30px;">
+			<div class="footer" style='text-align:center;font-size:12px;line-height:23px;height:22px;'>Copyright &copy;by omiga小组</div>
+		</div>
+        <div data-options="region:'east',split:true,minWidth:190" title="公告栏" style="width:180px;padding-right:5px;">
+           <div class="easyui-calendar" style='height:200px;margin-top:5px;'></div> 
+        </div>
+		<!--左侧菜单栏-->
+        <div id='west_menu' data-options="region:'west',split:true" title="菜单导航" style="width:150px;">
+            <div class="easyui-accordion" data-options="fit:true,border:false">
+                <div title="学生信息管理"  style="padding:10px;">
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-user-student',hasDownArrow:false" mysrc="{% url 'mysrc_stu' %}">学生列表</a>
+                </div>
+                <div title="教师信息管理"  style="padding:10px;">
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-user-teacher',hasDownArrow:false" mysrc="{% url 'mysrc_teach' %}">教师列表</a>
+                </div>
+                <div title="班级信息管理" style="padding:10px">
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-house',hasDownArrow:false" mysrc="{% url 'mysrc_clazz' %}">班级列表</a>
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-world',hasDownArrow:false" mysrc="{% url 'mysrc_grade' %}">年级列表</a>
+                </div>
+				<div title="课程信息管理" style="padding:10px">
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-book-open',hasDownArrow:false" mysrc="{% url 'mysrc_course' %}">课程列表</a>                 
+                </div>
+				<div title="成绩统计分析" style="padding:10px">
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-exam',hasDownArrow:false" mysrc="{% url 'mysrc_exam' %}">考试列表</a>
+                </div>
+                <div title="系统管理"  style="padding:10px">
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-user-teacher',hasDownArrow:false" mysrc="{% url 'add_user' %}">添加用户</a>
+                    <!-- <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-password',hasDownArrow:false">修改密码</a> -->
+                    <a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-set',hasDownArrow:false" mysrc="{% url 'user_s' %}">系统设置</a>
+					<a class='easyui-menubutton mymenubox' data-options="plain:false,iconCls:'icon-logout',hasDownArrow:false" href="{% url 'login' %}">退出系统</a>
+                </div>
+            </div>
+        </div>
+		<!--中间显示区域-->
+        <div data-options="region:'center'" >
+            <div id='center_tt' class='easyui-tabs' data-options='fit:true,tabWidth:112'>
+				<div title="欢迎使用" style="padding:20px;overflow:hidden;" >
+					<p style="font-size: 30px; line-height: 60px; height: 60px;">你好，管理员：</p><br><br>
+					<p style="font-size: 25px; line-height: 30px; height: 30px;">欢迎使用学生信息管理系统</p>					
+					<hr /><br><br><br>
+					<p style="font-size: 18px;color:red">最新通知：</p><br>
+					<p style="width: 1000px;font-size: 18px;">&nbsp;&nbsp;&nbsp;&nbsp;（１）管理员删除数据时候注意，会将与数据相关联的数据删除！<br><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;（２）因擅自删除相关信息造成的经济损失，学校将保留追究其法律责任的权利！</p>
+				</div>
+				
+				<!-- <div title="学生信息管理" style="padding:20px;overflow:hidden; color:red;">
+					<div class='easyui-panel' data-options='fit:true,title:"学生信息表"'>
+						<table id='grid'></table>
+					</div>					
+				</div> -->
+			</div>			
+        </div>
+    </div>
+
+  </body>
+</html>
+

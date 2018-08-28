@@ -1,0 +1,342 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>考试列表</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">
+
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/locale/easyui-lang-zh_CN.js' %}"></script>
+  <script src="{% static 'easyui/js/validateExtends.js' %}"></script>
+  <script>
+    $theme = window.parent.$theme;
+    $link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+  </script>
+	<script >
+		//验证只能为数字
+    var editRow = undefined;
+		function scoreBlur(score){
+			if(!/^[1-9]\d*$/.test($(score).val())){
+				$(score).val("");
+			}
+		}
+    $(function() {
+        var table;
+        
+        //datagrid初始化 
+        $('#dataList').datagrid({
+            title:'考试列表', 
+            iconCls:'icon-more',//图标 
+            border: true, 
+            collapsible: false,//是否可折叠的 
+            fit: true,//自动大小 
+            columns: [[  
+              {field:'chk',checkbox: true,width:50},
+              {field:'id',title:'ID',width:50, sortable: true,align:'center',halign:'center'}, 
+              {field:'exam_name',title:'考试名称',width:150,align:'center',halign:'center'},  
+              {field:'course_number',title:'考试科目',width:150,align:'center',halign:'center'},  
+              {field:'exam_time',title:'考试时间',width:150,align:'center',halign:'center'},
+              {field:'exam_interval',title:'考试时长',width:150,align:'center',halign:'center'},              
+              {field:'class_number',title:'考试班级',width:150,align:'center',halign:'center'},                
+              {field:'major_number',title:'专业',width:150,align:'center',halign:'center'},
+              {field:'term',title:'考试类型',width:150,align:'center',halign:'center'},    
+             ]],
+            method: "post",
+            url:"{% url 'exam_teacher' %}",   //服务器端获取考试信息数据
+            idField:'id', 
+            singleSelect: true,//是否单选 
+            pagination: false,//分页控件 
+            rownumbers: true,//行号 
+            sortName:'id',
+            // sortOrder:'DESC',
+            remoteSort: false,
+            toolbar: "#toolbar",
+        });
+        //设置工具类按钮
+        $("#add").click(function(){                        
+          table = $("#addTable");                
+          $("#addDialog").dialog("open"); 
+        });
+        
+        //成绩登记
+        $("#register").click(function(){          
+          var exam = $("#dataList").datagrid("getSelected");          
+          if(exam == null){
+              $.messager.alert("消息提醒", "请选择考试进行统计!", "warning");
+          } else{                
+              $("#regEscoreDialog").dialog("open");
+              // console.log(exam);
+              $.ajax({
+                      type: "post",
+                      // url:"",     //拉取考试信息给服务器
+                      data:exam,
+                      success: function(data){
+                        // console.log(data);
+                        $("#regEscoreList").datagrid('reload');
+                      }
+                    });
+          };
+        });
+        
+        //成绩统计
+        $("#escore").click(function(){          
+            var exam = $("#dataList").datagrid("getSelected"); 
+            var exam_ID = exam.id;           
+            if(exam == null){
+              $.messager.alert("消息提醒", "请选择考试进行统计!", "warning");
+            } else{ 
+              $("#escoreListDialog").dialog("open");
+              $('#escoreList').datagrid({
+                      remoteSort: true,
+                      //从成绩查询表导入成绩
+                      columns: [[
+                      {field:'stu_number',title:'学号',width:100,},
+                      {field:'stu_name',title:'姓名',width:100,},
+                      {field:'course_number',title:'考试科目',width:150},
+                      {field:'score',title:'分数',width:150},
+                      ]],
+              });
+            }
+        })
+
+        //考试成绩窗口
+        $("#escoreListDialog").dialog({
+          title: "成绩统计",
+          width: 850,
+          height: 550,
+          iconCls: "icon-chart_bar",
+          modal: true,
+          collapsible: false,
+          minimizable: false,
+          maximizable: false,
+          draggable: true,
+          closed: true,
+          
+
+          onClose: function(){
+                $("#escoreClazzList").combobox("clear");
+              }
+        });
+
+        //成绩列表
+        // $("#escoreList, #regEscoreList").datagrid({ 
+        $("#regEscoreList").datagrid({
+            onClickRow:function(rowIndex,rowData){      //单击选中，取消编辑    
+                if (editRow !== undefined) {
+                  $('#regEscoreList').datagrid("endEdit", editRow);
+                  editRow = undefined;
+                };
+                var exam = $("#dataList").datagrid("getSelected");
+                // console.log(exam.id);
+                // console.log(exam.course_number);
+              },
+              // queryParams:{'class_number':'12','course':'数学'},
+              border: true, 
+              collapsible: false,//是否可折叠的 
+              fit: true,//自动大小 
+              method: "post",
+              noheader: true,
+              singleSelect: true,//是否单选 
+              rownumbers: true,//行号
+              remoteSort: false,
+              // sortName:'score',
+              // sortOrder:'DESC',
+              frozenColumns: [[
+              {field:'number',title:'学号',width:120,resizable: false},    
+              {field:'name',title:'姓名',width:120,resizable: false}  ,
+              {field:'course',title:'科目',width:120,resizable: false},
+              {field:'score',title:'分数',width:120,resizable: false,sortable: true, editor:{
+                type:'validatebox',
+                options:{
+                  required:true
+                }
+             }},
+              ]],
+
+          //双击事件
+          onDblClickRow:function(rowIndex,rowData){         
+            if (editRow !== undefined) {
+              $('#regEscoreList').datagrid("endEdit", editRow);
+              editRow = undefined
+            }
+             //添加时如果没有正在编辑的行，则在datagrid的第一行插入一行
+            if (editRow === undefined) {             
+               //将新插入的那一行开户编辑状态
+              $('#regEscoreList').datagrid("beginEdit", rowIndex);
+              //给当前编辑的行赋值
+              editRow = rowIndex;
+              }
+            },
+          });
+
+        $("#escoreList").datagrid({ 
+              toolbar: "#escoreToolbar",
+          });
+
+        $("#regEscoreList").datagrid({ 
+              toolbar: "#regEscoreToolbar",
+          });
+        
+        //考试成绩窗口
+        $("#regEscoreDialog").dialog({
+          title: "成绩登记",
+          width: 850,
+          height: 550,
+          iconCls: "icon-vcard-edit",
+          modal: true,
+          collapsible: false,
+          minimizable: false,
+          maximizable: false,
+          draggable: true,
+          closed: true,
+          onClose: function(){
+            $("#regClazzList").combobox("clear");
+            $("#regCourseList").combobox("clear");
+          }
+        });
+        
+        //加载成绩查询表的数据
+        $("#escoreClazzList").combobox({
+          width: "150",
+          height: "25",
+          valueField: "clazz_name",  //加载所有班级
+          textField: "clazz_name",
+          multiple: false, //可多选
+          editable: false, //不可编辑
+          method: "post",
+          url: "{% url 'bjll_exam_teacher' %}",//成绩统计下拉列表框
+          onLoadSuccess: function(){
+          //默认选择第一条数据
+            var data = $(this).combobox("getData");
+            $(this).combobox("setValue", data[0].class_number);
+          },
+          onClick: function(newValue, oldValue){        
+            var exam = $("#dataList").datagrid("getSelected");  //获得考试的信息      
+            $.ajax({
+              url:"{% url 'nte_exam_teacher' %}",     //发送对应考试科目返回对应学生信息成绩等
+              data: {'course':exam.course_number,'class':exam.class_number},
+              type: 'post',
+              dataType:'json',
+              success: function (data) {                    
+                  $("#escoreList").datagrid("loadData",data);    //更新数据
+                }                  
+            });
+          }
+        });
+        
+        $("#regiser").click(function(){
+            var rows = $("#regEscoreList").datagrid("getRows");  //获取所有表格数据的json格式
+            // console.log(JSON.parse(JSON.stringify(rows)));
+            console.log(JSON.stringify(rows));
+            $.ajax({
+              url: "{% url 'student_exam_teacher' %}",      //这个url提交学生成绩
+              data: JSON.stringify(rows),
+              type: 'POST',
+              dataType:'json',
+              success: function (msg) {
+                if(msg['data'] == "success"){
+                  $.messager.alert("消息提醒","录入成功!","info");
+                  $("#regEscoreDialog").dialog("close");
+                }else{
+                  $.messager.alert("消息提醒","录入失败!","info");
+                  $("#regEscoreDialog").dialog("close");
+                }
+
+              },
+              error:function(error){
+                console.log(error)
+              }
+            });          
+        });
+        
+        $("#clear").click(function(){
+          $.messager.confirm("消息提醒", "确认清空？", function(r){
+              if(r){
+                $(".score").val("");
+              }
+            });
+        });
+        
+        //班级下拉框
+        $("#regClazzList").combobox({
+          width: "150",
+          height: "25",
+          panelHeight: '100',
+          valueField: "clazz_name",
+          textField: "clazz_name",
+          multiple: false, //可多选
+          editable: false, //不可编辑
+          method: "post",
+          // data:[{'clazz_name':'查看成绩'},],//本地数据
+          url:"{% url 'bjll_exam_teacher' %}",     //加载远程数据  //获取远程的班级信息
+          onClick:function(newValue,oldValue){
+            $.messager.confirm("消息提醒", "确认需要要转换班级登记分数？请提前保存好当前数据", function(r){
+              if(r){
+                var exam = $("#dataList").datagrid("getSelected");  //获得考试的信息
+                // console.log(exam.id+'-----'+newValue.class_number)  //获取下拉列表框的信息
+                $.ajax({
+                  url: "{% url 'teacher_coures' %}", 
+                  data: {'clazz':exam.course_number,'exam':exam.id,'class_number':exam.class_number},
+                  type: 'post',
+                  dataType:'json',
+                  success: function (msg) {
+                      // console.log(msg);
+                      $("#regEscoreList").datagrid('loadData',msg);   //更新数据
+                    }
+                });
+              }
+            })              
+          },
+          onLoadSuccess: function(){
+          //默认选择第一条数据
+            var data = $(this).combobox("getData");
+            $(this).combobox("setValue", data[0].class_number);
+          }
+
+        });
+    });
+	</script>
+</head>
+<body>
+	<!-- 数据列表 -->
+	<table id="dataList" cellspacing="0" cellpadding="0"> 	    
+	</table> 
+	
+	<!-- 工具栏 -->
+	<div id="toolbar">
+      <div style="float: left;" class="datagrid-btn-separator"></div>
+		<div style="float: left;"><a id="register" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'icon-vcard-edit',plain:true">登记成绩</a></div>
+			<div style="float: left;" class="datagrid-btn-separator"></div>
+		<div><a id="escore" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'icon-chart_bar',plain:true">成绩统计</a></div>
+	</div>
+	
+	<!-- 考试成绩表 -->
+	<div id="escoreListDialog">
+		<table id="escoreList" cellspacing="0" cellpadding="0"> 	    
+		</table> 
+	</div>
+	<div id="escoreToolbar">
+		<!-- <a id="redo" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'icon-redo',plain:true">导出</a> -->
+		<span id="escoreClazzSpan" style="margin-left:10px;">操作：<input id="escoreClazzList" class="easyui-textbox" name="clazz" /></span>
+	</div>
+	
+	<!-- 登记考试成绩 -->
+	<div id="regEscoreDialog">
+		<table id="regEscoreList" cellspacing="0" cellpadding="0"> 	    
+		</table> 
+	</div>
+	<div id="regEscoreToolbar">
+		<a id="regiser" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-folder-up',plain:true">提交</a>
+		<!-- <a id="clear" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-clear',plain:true">清空</a> -->
+		<span id="regClazzSpan" style="margin-left:10px;">操作：<input id="regClazzList" class="easyui-textbox" name="clazz" /></span>
+		
+	</div>	
+</body>
+</html>

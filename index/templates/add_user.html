@@ -1,0 +1,191 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>添加用户</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">	
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/js/validateExtends.js' %}"></script>	
+	<script>
+		$theme = window.parent.$theme;
+		$link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+	</script>
+</head>
+<body>
+	<!-- 数据列表 -->
+	<table id="dataList" cellspacing="0" cellpadding="0"> 	    
+	</table> 
+	<!-- 工具栏 -->
+	<div id="toolbar">
+		<div style="float: left;"><a id="add" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true">添加</a></div>
+			<div style="float: left;" class="datagrid-btn-separator"></div>
+		<div><a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a></div>
+	</div>
+	
+	<!-- 添加数据窗口 -->
+	<div id="addDialog" style="padding: 10px">  
+    	<form id="addForm" method="post">
+	    	<table cellpadding="8" >
+	    		<tr>
+	    			<td>账号:</td>
+	    			<td><input id="user_number" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="user_number" data-options="required:true, missingMessage:'不能为空'" /></td>
+	    		</tr>
+	    		<tr>
+	    			<td>姓名:</td>
+	    			<td><input id="name" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="name" data-options="required:true, missingMessage:'不能为空'" /></td>
+	    		</tr>
+	    		<!-- <tr>
+	    			<td>密码:</td>
+	    			<td><input id="password" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="password" data-options="required:true, missingMessage:'不能为空'" /></td>
+	    		</tr> -->
+	    		<tr>
+	    			<td>身份:</td>
+	    			<td>
+	    				<input type="radio" id="user_stu" name="shenfen" value='0' style='margin-left:30px' checked><label for="type">学生</label>
+	    				<input type="radio" id="user" name="shenfen" value='1' style='margin-left:40px'><label for="user_teach">教师</label>
+	    			</td>
+	    		</tr>
+	    	</table>
+	    </form>
+	</div>
+	<script type="text/javascript">
+		$(function() {	
+			//datagrid初始化 
+		    $('#dataList').datagrid({ 
+		        title:'用户列表', 
+		        iconCls:'icon-more',//图标 
+		        border: true, 
+		        collapsible: false,//是否可折叠的 
+		        fit: true,//自动大小 
+		        method: "post",
+		        // url:"{% url 'mysrc_course_list' %}",
+		        url:"/hehwedfiiodl/cx_user_durl/",
+		        idField:'id', 
+		        singleSelect: true,//是否单选 
+		        pagination: false,//分页控件 
+		        rownumbers: true,//行号 
+		        // sortName:'id',
+		        // sortOrder:'DESC', 
+		        // remoteSort: false,
+		        columns: [[ 
+					{field:'chk',checkbox: true,width:50},
+	 		        {field:'user_typeid',title:'职位',width:100,,align:'center',halign:'center'},
+	 		        {field:'user_id',title:'账号',width:100,,align:'center',halign:'center'},
+	 		        {field:'user_name',title:'姓名',width:200,align:'center',halign:'center'},
+	 		        {field:'user_password',title:'密码',width:100,align:'center',halign:'center'},    
+		 		]], 
+		        toolbar: "#toolbar"
+		    }); 
+		   
+		    //设置工具类按钮
+		    $("#add").click(function(){
+		    	$("#addDialog").dialog("open");
+		    });
+		    //删除
+		    $("#delete").click(function(){
+		    	var selectRow = $("#dataList").datagrid("getSelected");
+		    	// console.log(selectRow)
+	        	if(selectRow == null){
+	            	$.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+	            } else{
+	            	var gradeid = selectRow.user_id;
+	            	$.messager.confirm("消息提醒", "将删除该用户信息，确认继续？", function(r){
+	            		if(r){
+	            			$.ajax({
+								type: "post",
+								url: "/hehwedfiiodl/sc_user_durl/",
+								data: {gradeid: gradeid},
+								success: function(msg){
+									if(msg['data'] == "success"){
+										$.messager.alert("消息提醒","删除成功!","info");
+										//刷新表格
+										$("#dataList").datagrid("reload");
+									} else{
+										$.messager.alert("消息提醒","删除失败!","warning");
+										return;
+									}
+								}
+							});
+	            		}
+	            	});
+	            }
+		    });
+		    
+		  	
+		  	
+		  	//设置添加学生窗口
+		    $("#addDialog").dialog({
+		    	title: "添加用户信息",
+		    	width: 500,
+		    	height: 400,
+		    	iconCls: "icon-add",
+		    	modal: true,
+		    	collapsible: false,
+		    	minimizable: false,
+		    	maximizable: false,
+		    	draggable: true,
+		    	closed: true,
+		    	buttons: [
+		    		{
+						text:'添加',
+						plain: true,
+						iconCls:'icon-world-add',
+						handler:function(){
+							var validate = $("#addForm").form("validate");
+							if(!validate){
+								$.messager.alert("消息提醒","请检查你输入的数据!","warning");
+								return;
+							} else{	
+								// alert($("#addForm").serialize()),
+								user_number = $('#user_number').val(),
+								name = $('#name').val(),
+								value = $('input[name="shenfen"]:checked').val(),
+								$.ajax({
+									type: "post",
+		        					url:"/hehwedfiiodl/add_user_submit/",
+		        					// url:"{% url 'add_user_ajax_submit' %}"
+									data: {'user_number':user_number,'name':name,'value':value},
+		        					dataType:'json',
+									success: function(msg){
+										if(msg['data'] == "success"){
+											$.messager.alert("消息提醒","添加成功!","info");
+											//关闭窗口
+											$("#addDialog").dialog("close");
+											//清空原表格数据
+											$("#add_name").textbox('setValue', "");
+								  			$("#add_courseList").combobox("clear");
+											
+											//重新刷新页面数据
+								  			$('#dataList').datagrid("reload");
+										} else{
+											$.messager.alert("消息提醒","添加失败!","warning");
+											return;
+										}
+									}
+								});
+							}
+						}
+					},
+					{
+						text:'重置',
+						plain: true,
+						iconCls:'icon-world-reset',
+						handler:function(){
+							$('#user_number').textbox('setValue', '');
+							$('#name').textbox('setValue','');
+							$('#password').textbox('setValue','');
+						}
+					},
+				]
+		    });
+		});
+	</script>	
+</body>
+</html>

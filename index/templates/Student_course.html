@@ -1,0 +1,73 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>课程列表</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/js/validateExtends.js' %}"></script>
+	<script>
+		$theme = window.parent.$theme;
+		$link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+	</script>
+</head>
+<body>
+	<!-- 数据列表 -->
+	<table id="dataList" cellspacing="0" cellpadding="0"> 	    
+	</table> 
+	<!-- 工具栏 -->
+	<div id="toolbar">		
+	</div>	
+	<script type="text/javascript">
+		var class_number = window.parent.class_number;
+		$(function() {
+			//datagrid初始化 
+		    $('#dataList').datagrid({ 
+		        title:'课程列表', 
+		        iconCls:'icon-more',//图标 
+		        border: true, 
+        		pageList:[ 10, 20, 50 ],
+		        collapsible: false,//是否可折叠的 
+		        fit: true,//自动大小 
+		        method: "post",
+		        url:"{% url 'kclb_student' %}",
+		        idField:'id',
+		        queryParams:{'class_number':class_number},
+		        singleSelect: true,//是否单选 
+		        pagination: false,//分页控件 
+		        rownumbers: true,//行号 
+		        sortName:'id',
+		        // sortOrder:'DESC',
+		        remoteSort: false,
+		        columns: [[
+						{field:'chk',checkbox: true,width:50},
+	 		        	{field:'id',title:'课程ID',width:100, sortable: true,align:'center',halign:'center'},    
+	 		        	{field:'course_number',title:'课程名称',width:100,align:'center',halign:'center'},
+						{field:'major_number',title:'年级名称',width:100,align:'center',halign:'center'},
+						{field:'class_number',title:'上课班级',width:100,align:'center',halign:'center'},
+						{field:'teach_number',title:'授课老师',width:100,align:'center',halign:'center'},
+						{field:'course_place',title:'上课地点',width:100,align:'center',halign:'center'},
+						{field:'course_day',title:'开课日期',width:150,align:'center',halign:'center'},
+						{field:'course_time',title:'上课时间',width:150,align:'center',halign:'center'},
+						{field:'course_week',title:'星期几',width:100,align:'center',halign:'center'},
+						{field:'course_interval',title:'课时',width:100,align:'center',halign:'center'},
+		 		]], 
+		        toolbar: "#toolbar"
+		    }); 
+
+		    //设置工具类按钮
+		    $("#add").click(function(){
+		    	$("#addDialog").dialog("open");
+		    });
+		    
+		});
+	</script>
+</body>
+</html>

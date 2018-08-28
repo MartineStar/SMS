@@ -1,0 +1,65 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>班级通讯录</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/default/easyui.css' %}" id="link_tk">
+	<link rel="stylesheet" type="text/css" href="{% static 'easyui/themes/icon.css' %}">
+
+	<script src="{% static 'easyui/js/jquery.min.js' %}"></script>
+	<script src="{% static 'easyui/js/jquery.easyui.min.js' %}"></script>
+	<script src="{% static 'easyui/js/validateExtends.js' %}"></script>
+	<script>
+		$theme = window.parent.$theme;
+		$link_theme= $("#link_tk");
+        $link_theme.attr('href','/static/easyui/themes/'+$theme.val()+'/easyui.css');
+        $theme.click(function(){
+            $link_theme.attr('href','/static/easyui/themes/'+$(this).val()+'/easyui.css');
+        })
+	</script>
+</head>
+<body>
+	<!-- 学生列表 -->
+	<table id="dataList" cellspacing="0" cellpadding="0"> 	    
+	</table> 
+	<script >
+		var class_number_sort = window.parent.class_number;
+		$(function() {	
+			//datagrid初始化 
+				$('#dataList').datagrid({ 
+						title:'学生列表', 
+						iconCls:'icon-more',//图标 
+						border: true, 
+						collapsible:false,//是否可折叠的 
+						fit: true,//自动大小 
+						method: "post",
+						url:"{% url 'student_bjtxl' %}",
+						// data:[{'id':1,'number':'第一学期','name':'123','gender':'12345','nation':'201301044','major_number':'1','qq':'12'}],
+						idField:'id', 
+						singleSelect: true,//是否单选 
+						// pagination: true,//分页控件 
+						rownumbers: true,//行号 
+						sortName:'id',
+						sortOrder:class_number_sort,
+						remoteSort: false,
+						columns: [[  
+							{field:'chk',checkbox: true,width:50},
+							{field:'id',title:'ID',width:50, sortable: true,hidden:true,align:'center',halign:'center'},
+							{field:'number',title:'学号',width:200, sortable: true,align:'center',halign:'center'},    
+							{field:'name',title:'姓名',width:150,align:'center',halign:'center'},
+							{field:'gender',title:'性别',width:100,align:'center',halign:'center'},		
+							// {field:'nation',title:'民族',width:100},
+							{field:'major_number',title:'年级ID',width:100,align:'center',halign:'center'},
+							// {field:'grade',title:'年级',width:100},
+							{field:'class_number',title:'班级',width:100,align:'center',halign:'center'},
+							{field:'instructor',title:'指导员',width:100,align:'center',halign:'center'},
+							{field:'phone',title:'电话',width:150,align:'center',halign:'center'},
+							{field:'qq',title:'QQ',width:150,align:'center',halign:'center'}, 			
+					]], 				
+				}); 
+							
+		});
+	</script>
+</body>
+</html>
